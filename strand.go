@@ -57,7 +57,7 @@ func String(size int, charset string) (string, error) {
 	return string(nonce), nil
 }
 
-// SeededBytes returns a timestamp seeded byte slice.
+// SeededBytes returns a seeded byte slice.
 // size is the length of the byte slice that will be returned.
 // charset is the string of characters that the byte slice should pick from.
 // seed is the [opitonal] int64 value passed into the Default Source.  If no
@@ -77,7 +77,7 @@ func SeededBytes(size int, charset string, seed ...int64) []byte {
 	return nonce
 }
 
-// SeededString returns a timestamp seeded random string.
+// SeededString returns a seeded random string.
 // size is the length of the string that will be returned.
 // charset is the string of characters that the string should pick from.
 // seed is the [opitonal] int64 value passed into the Default Source.  If no
