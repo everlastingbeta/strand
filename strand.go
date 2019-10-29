@@ -62,7 +62,6 @@ func String(size int, charset string) (string, error) {
 // charset is the string of characters that the byte slice should pick from.
 // seed is the [opitonal] int64 value passed into the Default Source.  If no
 // seed is provided then it will default to `time.Now().UnixNano()`.
-//   - defaults to `time.Now().UnixNano()`
 func SeededBytes(size int, charset string, seed ...int64) []byte {
 	if len(seed) == 0 {
 		seed = append(seed, time.Now().UnixNano())
