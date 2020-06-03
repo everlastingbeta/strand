@@ -4,6 +4,8 @@ Simple golang library that allows for quick generation of random strings.
 
 [![GoDoc](https://godoc.org/github.com/everlastingbeta/strand?status.svg)](https://godoc.org/github.com/everlastingbeta/strand)
 [![Go Report Card](https://goreportcard.com/badge/everlastingbeta/strand?style=flat-square)](https://goreportcard.com/report/everlastingbeta/strand)
+![build](https://github.com/everlastingbeta/strand/workflows/test/badge.svg)
+![golangci-lint](https://github.com/everlastingbeta/strand/workflows/golangci-lint/badge.svg)
 
 ## Installation
 
