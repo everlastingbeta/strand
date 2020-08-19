@@ -44,3 +44,7 @@ issues:
       linters:
         - dupl
         - funlen
+        - gosec
+    - path: seeded.go
+      linters:
+        - gosec
