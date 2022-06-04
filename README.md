@@ -55,7 +55,7 @@ func main() {
 
 ### Sample Output
 
-```stl
+```
 random crypto bytes: [108 105 57 119 36 126 121 84 89 71 94 64] ==> li9w$~yTYG^@
 random crypto string:  AIPJFZALAFOY
 random seeded bytes: [45 63 46 124 58 62 91 123 35 41 123 125] ==> -?.|:>[{#){}
