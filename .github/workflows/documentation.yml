@@ -9,8 +9,6 @@ jobs:
     name: Renew documentation
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4.2.2
     - name: Pull new module version
       uses: andrewslotin/go-proxy-pull-action@master
       with:
