@@ -1,15 +1,14 @@
+name: Update Go Proxy
+
 on:
   release:
-    types:
-      - created
+    types: [created]
 
-name: documentation refresh
 jobs:
-  build:
-    name: Renew documentation
+  proxy-pull:
     runs-on: ubuntu-latest
     steps:
-    - name: Pull new module version
-      uses: andrewslotin/go-proxy-pull-action@master
-      with:
-        goproxy: https://gocenter.io
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Trigger Go proxy pull
+        uses: andrewslotin/go-proxy-pull-action@master
