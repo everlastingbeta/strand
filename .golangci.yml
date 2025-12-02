@@ -1,14 +1,16 @@
 version: "2"
+
 run:
   allow-parallel-runners: true
   allow-serial-runners: true
+
 linters:
-  default: none
   enable:
     - asasalint
     - asciicheck
     - bidichk
     - bodyclose
+    - copyloopvar
     - dogsled
     - durationcheck
     - errcheck
@@ -69,12 +71,8 @@ linters:
     - wastedassign
     - whitespace
     - wrapcheck
-    - wsl
-  settings:
-    nestif:
-      min-complexity: 3
-    testifylint:
-      enable-all: true
+    - wsl_v5
+
   exclusions:
     generated: lax
     presets:
@@ -83,26 +81,19 @@ linters:
       - legacy
       - std-error-handling
     rules:
-      - linters:
+      - path: '_test\.go'
+        linters:
           - dupl
-        path: (.+)_test\.go
-      - linters:
+      - path: 'seeded\.go'
+        linters:
           - gosec
-        path: seeded.go
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
+
+  settings:
+    nestif:
+      min-complexity: 3
+    testifylint:
+      enable-all: true
+
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10
-formatters:
-  enable:
-    - gci
-    - goimports
-  exclusions:
-    generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
