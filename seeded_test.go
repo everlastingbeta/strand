@@ -10,77 +10,35 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestSeededBytes verifies that the SeededBytes function correctly generates
-// deterministic byte slices of the requested size using only characters from
-// the specified charset. It also tests that using the same seed produces
-// identical results.
 func TestSeededBytes(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name    string // Description of the test case
-		charset string // Character set to use
-		size    int    // Size of the output to generate
-		seed    int64  // Seed for the random number generator
+		name    string
+		charset string
+		size    int
+		seed    int64
 	}{
-		{
-			name:    "uppercase characters",
-			charset: strand.UppercaseAlphabet,
-			size:    10,
-			seed:    42,
-		},
-		{
-			name:    "lowercase characters",
-			charset: strand.LowercaseAlphabet,
-			size:    15,
-			seed:    123,
-		},
-		{
-			name:    "mixed case alphabet",
-			charset: strand.Alphabet,
-			size:    20,
-			seed:    9999,
-		},
-		{
-			name:    "numbers only",
-			charset: strand.Numbers,
-			size:    8,
-			seed:    1234567,
-		},
-		{
-			name:    "symbols only",
-			charset: strand.Symbols,
-			size:    12,
-			seed:    987654,
-		},
-		{
-			name:    "all characters",
-			charset: strand.ALL,
-			size:    25,
-			seed:    55555,
-		},
-		{
-			name:    "custom character set",
-			charset: "\\\"/|!#$%^&*()_=~funset0Fdat@",
-			size:    18,
-			seed:    424242,
-		},
+		{name: tcUppercase, charset: strand.UppercaseAlphabet, size: 10, seed: 42},
+		{name: tcLowercase, charset: strand.LowercaseAlphabet, size: 15, seed: 123},
+		{name: tcMixedCase, charset: strand.Alphabet, size: 20, seed: 9999},
+		{name: tcNumbers, charset: strand.Numbers, size: 8, seed: 1234567},
+		{name: tcSymbols, charset: strand.Symbols, size: 12, seed: 987654},
+		{name: tcAll, charset: strand.ALL, size: 25, seed: 55555},
+		{name: tcCustom, charset: customCharset, size: 18, seed: 424242},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			// Test with explicit seed
 			nonce := strand.SeededBytes(tt.size, tt.charset, tt.seed)
 			assert.Len(t, nonce, tt.size)
 			assert.True(t, onlyContains(string(nonce), tt.charset))
 
-			// Deterministic behavior check - same seed should produce same output
 			nonce2 := strand.SeededBytes(tt.size, tt.charset, tt.seed)
-			assert.Equal(t, nonce, nonce2, "Same seed should produce same output")
+			assert.Equal(t, nonce, nonce2, "same seed should produce same output")
 
-			// Default seed (time-based)
 			nonceDefault := strand.SeededBytes(tt.size, tt.charset)
 			assert.Len(t, nonceDefault, tt.size)
 			assert.True(t, onlyContains(string(nonceDefault), tt.charset))
@@ -88,76 +46,35 @@ func TestSeededBytes(t *testing.T) {
 	}
 }
 
-// TestSeededString verifies that the SeededString function correctly generates
-// deterministic strings of the requested size using only characters from the
-// specified charset. It also tests that using the same seed produces identical results.
 func TestSeededString(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name    string // Description of the test case
-		charset string // Character set to use
-		size    int    // Size of the output to generate
-		seed    int64  // Seed for the random number generator
+		name    string
+		charset string
+		size    int
+		seed    int64
 	}{
-		{
-			name:    "uppercase characters",
-			charset: strand.UppercaseAlphabet,
-			size:    10,
-			seed:    42,
-		},
-		{
-			name:    "lowercase characters",
-			charset: strand.LowercaseAlphabet,
-			size:    15,
-			seed:    123,
-		},
-		{
-			name:    "mixed case alphabet",
-			charset: strand.Alphabet,
-			size:    20,
-			seed:    9999,
-		},
-		{
-			name:    "numbers only",
-			charset: strand.Numbers,
-			size:    8,
-			seed:    1234567,
-		},
-		{
-			name:    "symbols only",
-			charset: strand.Symbols,
-			size:    12,
-			seed:    987654,
-		},
-		{
-			name:    "all characters",
-			charset: strand.ALL,
-			size:    25,
-			seed:    55555,
-		},
-		{
-			name:    "custom character set",
-			charset: "\\\"/|!#$%^&*()_=~funset0Fdat@",
-			size:    18,
-			seed:    424242,
-		},
+		{name: tcUppercase, charset: strand.UppercaseAlphabet, size: 10, seed: 42},
+		{name: tcLowercase, charset: strand.LowercaseAlphabet, size: 15, seed: 123},
+		{name: tcMixedCase, charset: strand.Alphabet, size: 20, seed: 9999},
+		{name: tcNumbers, charset: strand.Numbers, size: 8, seed: 1234567},
+		{name: tcSymbols, charset: strand.Symbols, size: 12, seed: 987654},
+		{name: tcAll, charset: strand.ALL, size: 25, seed: 55555},
+		{name: tcCustom, charset: customCharset, size: 18, seed: 424242},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			// Test with explicit seed
 			str := strand.SeededString(tt.size, tt.charset, tt.seed)
 			assert.Len(t, str, tt.size)
 			assert.True(t, onlyContains(str, tt.charset))
 
-			// Deterministic behavior check - same seed should produce same output
 			str2 := strand.SeededString(tt.size, tt.charset, tt.seed)
-			assert.Equal(t, str, str2, "Same seed should produce same output")
+			assert.Equal(t, str, str2, "same seed should produce same output")
 
-			// Default seed (time-based)
 			strDefault := strand.SeededString(tt.size, tt.charset)
 			assert.Len(t, strDefault, tt.size)
 			assert.True(t, onlyContains(strDefault, tt.charset))
@@ -165,15 +82,13 @@ func TestSeededString(t *testing.T) {
 	}
 }
 
-// TestSeededBytesWithContext verifies that SeededBytesWithContext honors context cancellation.
 func TestSeededBytesWithContext(t *testing.T) {
 	t.Parallel()
 
 	t.Run("successful generation", func(t *testing.T) {
 		t.Parallel()
 
-		ctx := context.Background()
-		result, err := strand.SeededBytesWithContext(ctx, 10, strand.Alphabet, 42)
+		result, err := strand.SeededBytesWithContext(t.Context(), 10, strand.Alphabet, 42)
 		require.NoError(t, err)
 		assert.Len(t, result, 10)
 	})
@@ -181,8 +96,8 @@ func TestSeededBytesWithContext(t *testing.T) {
 	t.Run("respects context cancellation", func(t *testing.T) {
 		t.Parallel()
 
-		ctx, cancel := context.WithCancel(context.Background())
-		cancel() // Cancel the context immediately
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
 
 		result, err := strand.SeededBytesWithContext(ctx, 10, strand.Alphabet, 42)
 		require.Error(t, err)
@@ -193,10 +108,9 @@ func TestSeededBytesWithContext(t *testing.T) {
 	t.Run("respects context timeout", func(t *testing.T) {
 		t.Parallel()
 
-		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
+		ctx, cancel := context.WithTimeout(t.Context(), 1*time.Nanosecond)
 		defer cancel()
 
-		// Sleep to ensure timeout occurs
 		time.Sleep(1 * time.Millisecond)
 
 		result, err := strand.SeededBytesWithContext(ctx, 10, strand.Alphabet, 42)
@@ -206,15 +120,13 @@ func TestSeededBytesWithContext(t *testing.T) {
 	})
 }
 
-// TestSeededStringWithContext verifies that SeededStringWithContext honors context cancellation.
 func TestSeededStringWithContext(t *testing.T) {
 	t.Parallel()
 
 	t.Run("successful generation", func(t *testing.T) {
 		t.Parallel()
 
-		ctx := context.Background()
-		result, err := strand.SeededStringWithContext(ctx, 10, strand.Alphabet, 42)
+		result, err := strand.SeededStringWithContext(t.Context(), 10, strand.Alphabet, 42)
 		require.NoError(t, err)
 		assert.Len(t, result, 10)
 	})
@@ -222,8 +134,8 @@ func TestSeededStringWithContext(t *testing.T) {
 	t.Run("respects context cancellation", func(t *testing.T) {
 		t.Parallel()
 
-		ctx, cancel := context.WithCancel(context.Background())
-		cancel() // Cancel the context immediately
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
 
 		result, err := strand.SeededStringWithContext(ctx, 10, strand.Alphabet, 42)
 		require.Error(t, err)
@@ -234,10 +146,9 @@ func TestSeededStringWithContext(t *testing.T) {
 	t.Run("respects context timeout", func(t *testing.T) {
 		t.Parallel()
 
-		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
+		ctx, cancel := context.WithTimeout(t.Context(), 1*time.Nanosecond)
 		defer cancel()
 
-		// Sleep to ensure timeout occurs
 		time.Sleep(1 * time.Millisecond)
 
 		result, err := strand.SeededStringWithContext(ctx, 10, strand.Alphabet, 42)
@@ -247,9 +158,6 @@ func TestSeededStringWithContext(t *testing.T) {
 	})
 }
 
-// TestSeededDeterminism specifically focuses on verifying the deterministic
-// behavior of the seeded functions, ensuring that identical seeds produce
-// identical outputs across multiple calls.
 func TestSeededDeterminism(t *testing.T) {
 	t.Parallel()
 
