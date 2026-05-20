@@ -15,7 +15,7 @@
 // Alphabet, Numbers, AlphaNumeric, Symbols, and ALL — cover common cases;
 // any string may also be passed as a custom charset.
 //
-// Errors
+// # Errors
 //
 // The secure generators return ErrInvalidSize when size <= 0,
 // ErrEmptyCharset when charset is empty, and an error wrapping
