@@ -8,138 +8,103 @@ import (
 	"github.com/everlastingbeta/strand"
 )
 
-// FuzzBytes uses Go's built-in fuzzing to test the Bytes function with
-// various inputs. This helps identify edge cases and potential bugs that
-// might not be covered by traditional tests.
+const fuzzMaxSize = 1000
+
 func FuzzBytes(f *testing.F) {
-	// Add seed corpus
 	f.Add(10, strand.Alphabet)
 	f.Add(1, strand.Numbers)
 	f.Add(100, strand.Symbols)
 
-	// Fuzz test
 	f.Fuzz(func(t *testing.T, size int, charset string) {
-		// Skip negative sizes or empty charsets as they should return errors
 		if size <= 0 || len(charset) == 0 {
 			return
 		}
 
-		// Only test with reasonable sizes to avoid excessive resource usage
-		if size > 1000 {
-			size = 1000
+		if size > fuzzMaxSize {
+			size = fuzzMaxSize
 		}
 
-		bytes, err := strand.Bytes(size, charset)
+		out, err := strand.Bytes(size, charset)
 		if err != nil {
-			t.Fatalf("Failed to generate bytes: %v", err)
+			t.Fatalf("Bytes(%d, %q) failed: %v", size, charset, err)
 		}
 
-		// Verify the length
-		if len(bytes) != size {
-			t.Errorf("Expected length %d, got %d", size, len(bytes))
+		if len(out) != size {
+			t.Errorf("len = %d, want %d", len(out), size)
 		}
 
-		// Verify each byte is from the charset
-		for _, b := range bytes {
-			found := false
-
-			for i := range len(charset) {
-				if b == charset[i] {
-					found = true
-					break
-				}
-			}
-
-			if !found {
-				t.Errorf("Byte %c not found in charset %s", b, charset)
+		for _, b := range out {
+			if strings.IndexByte(charset, b) < 0 {
+				t.Errorf("byte %q not in charset %q", b, charset)
 			}
 		}
 	})
 }
 
-// FuzzString uses Go's built-in fuzzing to test the String function with
-// various inputs. This helps identify edge cases and potential bugs that
-// might not be covered by traditional tests.
 func FuzzString(f *testing.F) {
-	// Add seed corpus
 	f.Add(10, strand.Alphabet)
 	f.Add(1, strand.Numbers)
 	f.Add(100, strand.Symbols)
 
-	// Fuzz test
 	f.Fuzz(func(t *testing.T, size int, charset string) {
-		// Skip negative sizes or empty charsets as they should return errors
 		if size <= 0 || len(charset) == 0 {
 			return
 		}
 
-		// Only test with reasonable sizes to avoid excessive resource usage
-		if size > 1000 {
-			size = 1000
+		if size > fuzzMaxSize {
+			size = fuzzMaxSize
 		}
 
 		str, err := strand.String(size, charset)
 		if err != nil {
-			t.Fatalf("Failed to generate string: %v", err)
+			t.Fatalf("String(%d, %q) failed: %v", size, charset, err)
 		}
 
-		// Verify the length
 		if len(str) != size {
-			t.Errorf("Expected length %d, got %d", size, len(str))
+			t.Errorf("len = %d, want %d", len(str), size)
 		}
 
-		// Verify each character is from the charset
 		for _, ch := range str {
 			if !strings.ContainsRune(charset, ch) {
-				t.Errorf("Character %c not found in charset %s", ch, charset)
+				t.Errorf("rune %q not in charset %q", ch, charset)
 			}
 		}
 	})
 }
 
-// FuzzSeededDeterminism uses fuzzing to verify deterministic behavior
-// of the seeded functions with various inputs.
 func FuzzSeededDeterminism(f *testing.F) {
-	// Add seed corpus
 	f.Add(10, strand.Alphabet, int64(42))
 	f.Add(20, strand.Numbers, int64(123))
 	f.Add(30, strand.Symbols, int64(9999))
 
-	// Fuzz test
 	f.Fuzz(func(t *testing.T, size int, charset string, seed int64) {
-		// Skip negative sizes or empty charsets
 		if size <= 0 || len(charset) == 0 {
 			return
 		}
 
-		// Only test with reasonable sizes to avoid excessive resource usage
-		if size > 1000 {
-			size = 1000
+		if size > fuzzMaxSize {
+			size = fuzzMaxSize
 		}
 
-		// Test bytes
-		bytes1 := strand.SeededBytes(size, charset, seed)
-		bytes2 := strand.SeededBytes(size, charset, seed)
+		b1 := strand.SeededBytes(size, charset, seed)
+		b2 := strand.SeededBytes(size, charset, seed)
 
-		if len(bytes1) != size {
-			t.Errorf("Expected bytes length %d, got %d", size, len(bytes1))
+		if len(b1) != size {
+			t.Errorf("SeededBytes len = %d, want %d", len(b1), size)
 		}
 
-		// Same seed should produce identical results
-		if !bytes.Equal(bytes1, bytes2) {
+		if !bytes.Equal(b1, b2) {
 			t.Errorf("SeededBytes not deterministic with seed %d", seed)
 		}
 
-		// Test strings
-		str1 := strand.SeededString(size, charset, seed)
-		str2 := strand.SeededString(size, charset, seed)
+		s1 := strand.SeededString(size, charset, seed)
+		s2 := strand.SeededString(size, charset, seed)
 
-		if len(str1) != size {
-			t.Errorf("Expected string length %d, got %d", size, len(str1))
+		if len(s1) != size {
+			t.Errorf("SeededString len = %d, want %d", len(s1), size)
 		}
 
-		// Same seed should produce identical results
-		if str1 != str2 {
+		if s1 != s2 {
 			t.Errorf("SeededString not deterministic with seed %d", seed)
 		}
 	})

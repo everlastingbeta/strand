@@ -1,6 +1,6 @@
 # strand
 
-A lightweight, powerful Golang library for generating random strings with both cryptographically secure and seeded options.
+A lightweight Go library for generating random strings — both cryptographically secure (`crypto/rand`) and deterministic seeded (`math/rand/v2`) — with context cancellation support and predefined character sets.
 
 [![PkgGoDev](https://pkg.go.dev/badge/everlastingbeta/strand)](https://pkg.go.dev/github.com/everlastingbeta/strand)
 [![Go Report Card](https://goreportcard.com/badge/everlastingbeta/strand?style=flat-square)](https://goreportcard.com/report/everlastingbeta/strand)
@@ -9,11 +9,15 @@ A lightweight, powerful Golang library for generating random strings with both c
 
 ## Features
 
-- Generate cryptographically secure random strings using `crypto/rand`
-- Create deterministic random strings with custom seeds using `math/rand/v2`
-- Context-aware functions for cancellation support
-- Predefined character sets for common use cases
-- Simple, clean API with both error-returning and panic-on-error versions
+- Cryptographically secure random output via `crypto/rand`
+- Deterministic seeded output via `math/rand/v2` for reproducible fixtures
+- Context-aware variants for cancellation and timeouts
+- Predefined character sets, plus support for any custom string
+- Zero runtime dependencies
+
+## Requirements
+
+Go 1.26 or newer.
 
 ## Installation
 
@@ -28,20 +32,21 @@ package main
 
 import (
     "fmt"
+
     "github.com/everlastingbeta/strand"
 )
 
 func main() {
-    // Generate a secure random string with uppercase letters
+    // Cryptographically secure random string.
     token, err := strand.String(16, strand.UppercaseAlphabet)
     if err != nil {
         panic(err)
     }
     fmt.Println("Secure token:", token)
 
-    // Generate a predictable string with a custom charset and seed
-    password := strand.SeededString(12, strand.ALL, 42)
-    fmt.Println("Deterministic password:", password)
+    // Deterministic string from a fixed seed.
+    fixture := strand.SeededString(12, strand.ALL, 42)
+    fmt.Println("Seeded fixture:", fixture)
 }
 ```
 
@@ -49,45 +54,45 @@ func main() {
 
 ### Cryptographically Secure Random Generation
 
-Use these functions for security-sensitive applications like tokens, passwords, and API keys.
+Use these functions for security-sensitive output like tokens, passwords, and API keys.
 
 ```go
-// Generate a secure random byte slice with alphanumeric characters
-bytes, err := strand.Bytes(12, strand.AlphaNumeric)
+// Random byte slice drawn from an alphanumeric charset.
+b, err := strand.Bytes(12, strand.AlphaNumeric)
 if err != nil {
-    // Handle error
+    // Handle error.
 }
-fmt.Printf("Random bytes: %v\n", bytes)
+fmt.Println("Random bytes:", string(b))
 
-// Generate a secure random string with custom character set
-apiKey, err := strand.String(32, strand.AlphaNumeric + "-_")
+// Random string from a custom charset.
+apiKey, err := strand.String(32, strand.AlphaNumeric+"-_")
 if err != nil {
-    // Handle error
+    // Handle error.
 }
 fmt.Println("API key:", apiKey)
 
-// Non-error-returning versions (will panic on error)
+// Panic-on-error variants for callers that statically know inputs are valid.
 token := strand.MustString(16, strand.ALL)
 fmt.Println("Secure token:", token)
 ```
 
 ### Deterministic Random Generation
 
-Use these functions when you need reproducible results with a specific seed.
+Use these functions when you need reproducible results.
 
 ```go
-// Generate a random byte slice with a timestamp-based seed
-bytes := strand.SeededBytes(8, strand.Numbers)
-fmt.Printf("Seeded bytes: %v\n", bytes)
+// Time-seeded (non-reproducible across runs).
+b := strand.SeededBytes(8, strand.Numbers)
+fmt.Println("Seeded bytes:", string(b))
 
-// Generate a random string with a custom seed and charset
+// Fixed-seed (identical output every run).
 id := strand.SeededString(10, "ACDEFGHJKLMNPQRSTUVWXYZ23456789", 12345)
 fmt.Println("Deterministic ID:", id)
 ```
 
 ### Context-Aware Functions
 
-For operations that might need to be canceled or have timeouts.
+For operations that might need to be canceled or time out.
 
 ```go
 import (
@@ -95,43 +100,57 @@ import (
     "time"
 )
 
-// Create a context with timeout
 ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 defer cancel()
 
-// Generate random strings with context support
 result, err := strand.StringWithContext(ctx, 20, strand.ALL)
 if err != nil {
-    // Handle context cancellation or other errors
+    // Handle context cancellation or other errors.
 }
 
-// Also available for seeded versions
 seededResult, err := strand.SeededStringWithContext(ctx, 20, strand.AlphaNumeric, 42)
 if err != nil {
-    // Handle errors
+    // Handle errors.
 }
 ```
 
 ## Available Character Sets
 
-Strand provides several predefined character sets for convenience:
+| Constant            | Contents                                  |
+|---------------------|-------------------------------------------|
+| `UppercaseAlphabet` | `A-Z`                                     |
+| `LowercaseAlphabet` | `a-z`                                     |
+| `Alphabet`          | `a-z` and `A-Z`                           |
+| `Numbers`           | `0-9`                                     |
+| `AlphaNumeric`      | `Alphabet` + `Numbers`                    |
+| `Symbols`           | ``<>,\./|?;:[]{}+=_-()*&^%$#@!~``         |
+| `ALL`               | `AlphaNumeric` + `Symbols`                |
 
-| Constant | Description |
-|----------|-------------|
-| `UppercaseAlphabet` | Uppercase letters (A-Z) |
-| `LowercaseAlphabet` | Lowercase letters (a-z) |
-| `Alphabet` | All letters (a-z, A-Z) |
-| `Numbers` | Digits (0-9) |
-| `AlphaNumeric` | All letters and digits |
-| `Symbols` | Common special characters |
-| `ALL` | All alphanumeric characters and symbols |
+Any string may be passed as a custom charset.
 
-You can also define your own custom character sets as strings.
+## Errors
+
+The secure generators return one of the following sentinel errors, suitable for use with `errors.Is`:
+
+| Error              | Condition                                 |
+|--------------------|-------------------------------------------|
+| `ErrInvalidSize`   | `size <= 0`                               |
+| `ErrEmptyCharset`  | `charset == ""`                           |
+| `ErrRandomFailure` | the underlying entropy source failed (wrapped) |
+
+Context-aware variants additionally return an error wrapping `ctx.Err()` if the context is already done. `MustBytes` and `MustString` panic on the same conditions instead of returning the error.
+
+```go
+_, err := strand.String(0, strand.Alphabet)
+if errors.Is(err, strand.ErrInvalidSize) {
+    // ...
+}
+```
 
 ## Security Considerations
 
-- The `Bytes()` and `String()` functions use `crypto/rand` and are suitable for security-sensitive applications.
-- The `SeededBytes()` and `SeededString()` functions use `math/rand/v2` and are NOT cryptographically secure. Use them only when predictable output is required.
+- `Bytes`, `String`, `MustBytes`, `MustString`, and their `*WithContext` variants use `crypto/rand` and are suitable for security-sensitive output.
+- `SeededBytes`, `SeededString`, and their `*WithContext` variants use `math/rand/v2`. They are **not** cryptographically secure — use them only when reproducible output is required.
 
 ## License
 
